@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>haberportal — canlı demo</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { color-scheme: light dark; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+    background:#0b1220; color:#e6edf6; text-align:center; padding:24px; }
+  .kutu { max-width:520px }
+  .logo { display:inline-flex; align-items:center; gap:10px; font-weight:800; font-size:22px; letter-spacing:-.3px }
+  .rozet { background:#e11d48; color:#fff; width:38px; height:38px; border-radius:11px;
+    display:grid; place-items:center; font-size:19px }
+  h1 { font-size:20px; margin:22px 0 8px; font-weight:700 }
+  p { color:#94a3b8; font-size:14.5px; line-height:1.6; margin:0 0 18px }
+  .spin { width:34px; height:34px; margin:20px auto; border:3px solid #1e293b;
+    border-top-color:#e11d48; border-radius:50%; animation:d 1s linear infinite }
+  @keyframes d { to { transform:rotate(360deg) } }
+  a.btn { display:inline-block; background:#e11d48; color:#fff; text-decoration:none;
+    padding:11px 22px; border-radius:10px; font-weight:700; font-size:15px }
+  .hata { background:#1e293b; border-radius:12px; padding:16px; font-size:14px; color:#cbd5e1 }
+  .kucuk { font-size:12px; color:#64748b; margin-top:20px }
+</style>
+</head>
+<body>
+<div class="kutu">
+  <div class="logo"><span class="rozet">⚡</span> haberportal</div>
+  <div id="durum">
+    <div class="spin"></div>
+    <h1>Demoya bağlanılıyor…</h1>
+    <p>Canlı sunucunun güncel adresi alınıyor.</p>
+  </div>
+  <p class="kucuk">Bu sayfa demo sunucusunun güncel adresine yönlendirir.</p>
+</div>
+<script>
+(async function () {
+  var durum = document.getElementById('durum');
+  function hata(mesaj) {
+    durum.innerHTML = '<h1>Demo şu an kapalı</h1><div class="hata">' + mesaj + '</div>';
+  }
+  try {
+    // raw.githubusercontent: push'tan saniyeler sonra güncel (GitHub Pages
+    // yayını ~1 dk gecikiyor, o aralıkta ölü adrese yönlendiriyordu).
+    var r = await fetch(
+      'https://raw.githubusercontent.com/xawiar/haberportal-adres/main/adres.json?t=' + Date.now(),
+      { cache: 'no-store' }
+    );
+    if (!r.ok) throw new Error('adres okunamadı (' + r.status + ')');
+    var d = await r.json();
+    if (!d.adres) throw new Error('adres kaydı boş');
+    var hedef = d.adres + (location.hash ? location.hash.slice(1) : '');
+    durum.innerHTML =
+      '<h1>Demo hazır</h1><p>Güncelleme: ' + (d.guncelleme || '-') + '</p>' +
+      '<a class="btn" href="' + hedef + '">Siteye git →</a>';
+    location.replace(hedef);
+  } catch (e) {
+    console.error('[yonlendirme]', e);
+    hata('Sunucu şu an açık değil ya da adres güncellenemedi.<br>Birazdan tekrar deneyin.');
+  }
+})();
+</script>
+</body>
+</html>
